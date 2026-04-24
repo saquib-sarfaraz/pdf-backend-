@@ -5,7 +5,33 @@ const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
   try {
+    const providerRaw =
+      process.env.AI_PROVIDER ||
+      (process.env.GROQ_API_KEY
+        ? "groq"
+        : process.env.GEMINI_API_KEY
+          ? "gemini"
+          : process.env.XAI_API_KEY
+            ? "grok"
+            : "groq");
+    const provider = String(providerRaw || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^xai$/, "grok");
+    const model =
+      provider === "groq"
+        ? process.env.GROQ_MODEL || "llama-3.3-70b-versatile"
+        : provider === "grok" || provider === "xai"
+          ? process.env.XAI_MODEL || "grok-4.20-reasoning"
+          : process.env.GEMINI_MODEL || "gemini-1.5-flash";
+
     console.log("Starting server...");
+    console.log(
+      `AI: provider=${provider} | model=${model} | autoDebug=${process.env.AUTO_DEBUG || "false"}`
+    );
+    if (provider === "gemini") {
+      console.log(`Gemini: apiVersion=${process.env.GEMINI_API_VERSION || "auto"}`);
+    }
 
     await connectDB();
 
